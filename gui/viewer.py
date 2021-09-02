@@ -16,7 +16,6 @@ class Viewer(QObject):
     def setImage(self, pixmap):
         self._image.setPixmap(pixmap)
 
-
     def arrayToPixmap(self, img):
         qformat = QImage.Format_Indexed8
         if len(img.shape) == 3:

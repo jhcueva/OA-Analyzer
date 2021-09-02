@@ -2,10 +2,12 @@ import os
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QFileSystemModel
 from PyQt5 import uic, QtCore
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtCore import Qt, QPoint, QRect, QSize
 from gui.viewer import Viewer
 from gui.roi import Roi
 from gui.mouseTracker import MouseTracker
+
+from inference.inference import Knee
 
 
 class App(QMainWindow):
@@ -18,12 +20,14 @@ class App(QMainWindow):
         self.__configureMouseTrack()
 
         self.imageViewer = Viewer(self.image)
+        self.rectL = QRect()
+        self.rectM = QRect()
         self.dragPositionL = QPoint()
         self.dragPositionM = QPoint()
 
-        # self.systemPath = os.path.dirname(os.path.abspath(__file__))
-        # print(os.path.)
-        # self.testPath = os.path.join(self.systemPath, gui)
+        self.system_path = os.path.dirname(os.path.abspath(__file__))
+        self.gui = os.path.join(self.system_path, "gui")
+        self.analyzed = os.path.join(self.gui, "analyzed")
 
     def __configureMouseTrack(self):
         tracker = MouseTracker(self.roi)
@@ -53,6 +57,7 @@ class App(QMainWindow):
             print("No files to add", e)
 
     def displayImage(self, item):
+        self.delete_ROI()
         self.fileName = item.text()
         # self.imageViewer = Viewer(self.image)
         self.dicomImg = self.imageViewer.read_dicom(os.path.join(self.dir, self.fileName))
@@ -61,43 +66,73 @@ class App(QMainWindow):
         self.imageViewer.setImage(self.pixmap)
 
     def process(self):
-        self.roiViewer.saveRoi(self.fileName, self.roiViewer.lateralSquare(), self.roiViewer.medialSquare(), self.pixmap)
+        self.delete_ROI()
+        self.imageViewer.setImage(self.pixmap)
+        # self.roiViewer.setRoi(self.pixmap)
+        self.roiViewer.saveRoi(self.fileName, self.lateralSquare(), self.medialSquare(), self.pixmap)
+        # self.saveRoi(self.fileName, self.roiViewer.lateralSquare(), self.roiViewer.medialSquare())
+        prediction, id = Knee(self.gui)
+        print(prediction)
+        print(id)
 
     def roiSelector(self):
-        self.roiViewer = Roi(self.roi, self.image, self.dicomImg, self.pixmap, self.posX, self.posY)
-        self.roiViewer.setRoi(self.pixmap)
+        try:
+            self.imageViewer.setImage(self.pixmap)
+            self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
+        except Exception as e:
+            print(e)
+
+        self.roiViewer = Roi(self.roi, self.image, self.dicomImg, self.posX, self.posY)
+        # self.imageViewer.setImage(self.pixmap)
+        self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
+
+    def delete_ROI(self):
+        print(self.analyzed)
+        for file in os.listdir(self.analyzed):
+            os.remove(os.path.join(self.analyzed, file))
+
+        try:
+            self.htmpRK.clear()
+            self.htmpLK.clear()
+            self.htmpSingle.clear()
+            self.barPredictR.clear()
+            self.barPredictL.clear()
+            self.barPredictSingle.clear()
+
+        except Exception as e:
+            print("No files to delete", e)
 
     def mousePressEvent(self, event):
         if event.buttons() & Qt.LeftButton:
-            if self.roiViewer.lateralSquare().contains(self.posX, self.posY):
+            if self.lateralSquare().contains(self.posX, self.posY):
                 self.roi.setCursor(Qt.ClosedHandCursor)
-                self.dragPositionL = event.pos() - self.roiViewer.lateralSquare().topLeft()
+                self.dragPositionL = event.pos() - self.lateralSquare().topLeft()
             super().mousePressEvent(event)
 
-            if self.roiViewer.medialSquare().contains(self.posX, self.posY):
+            if self.medialSquare().contains(self.posX, self.posY):
                 self.roi.setCursor(Qt.ClosedHandCursor)
-                self.dragPositionM = event.pos() - self.roiViewer.medialSquare().topLeft()
+                self.dragPositionM = event.pos() - self.medialSquare().topLeft()
             super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         if not self.dragPositionL.isNull():
-            self.roiViewer.lateralSquare().moveTopLeft(event.pos() - self.dragPositionL)
+            self.lateralSquare().moveTopLeft(event.pos() - self.dragPositionL)
             self.displayImage(self.lstFilesList.currentItem())
-            self.roiViewer.setRoi(self.pixmap)
-            self.update()
+            self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
         super().mouseMoveEvent(event)
 
         if not self.dragPositionM.isNull():
-            self.roiViewer.medialSquare().moveTopLeft(event.pos() - self.dragPositionM)
+            self.medialSquare().moveTopLeft(event.pos() - self.dragPositionM)
             self.displayImage(self.lstFilesList.currentItem())
-            self.roiViewer.setRoi(self.pixmap)
-            self.update()
+            self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         self.dragPositionL = QPoint()
         self.dragPositionM = QPoint()
         self.roi.setCursor(Qt.ArrowCursor)
+        # self.displayImage(self.lstFilesList.currentItem())
+        # self.roiViewer.setRoi(self.pixmap)
         self.update()
         super().mouseReleaseEvent(event)
 
@@ -106,9 +141,32 @@ class App(QMainWindow):
         try:
             self.posX = (pos.x() * self.dicomImg.shape[1]) // self.roi.width()
             self.posY = (pos.y() * self.dicomImg.shape[0]) // self.roi.height()
-            self.roiViewer.mousePressEvent()
+            # self.roiViewer.mousePressEvent()
         except Exception as e:
             print('No value', e)
+
+    def lateralSquare(self, height= 495, width=495):
+        if self.rectL.isNull():
+            self.rectL = QRect(QPoint(self.roiPoints()[0], self.roiPoints()[1]), QSize(height, width))
+            self.update()
+        return self.rectL
+
+    def medialSquare(self, height=495, width=495):
+        if self.rectM.isNull():
+            self.rectM = QRect(QPoint(self.roiPoints()[2], self.roiPoints()[3]), QSize(height, width))
+            self.update()
+        return self.rectM
+
+    def roiPoints(self):
+        center = self.dicomImg.shape[1] // 2
+        right_x1 = (self.dicomImg.shape[1] - center) // 3
+        left_x1 = ((self.dicomImg.shape[1] - center) // 3) + center
+        left_y1 = self.dicomImg.shape[0] // 4
+        print(right_x1)
+        print(left_y1)
+        print(left_y1)
+        print(center)
+        return right_x1, left_y1, left_x1, left_y1, center
 
 
 if __name__ == '__main__':

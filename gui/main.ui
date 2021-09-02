@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1918</width>
+    <width>1921</width>
     <height>1031</height>
    </rect>
   </property>
@@ -363,7 +363,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QLabel" name="bar_predict1">
+   <widget class="QLabel" name="barPredictR">
     <property name="geometry">
      <rect>
       <x>1150</x>
@@ -376,7 +376,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="bar_predict2">
+   <widget class="QLabel" name="barPredictL">
     <property name="geometry">
      <rect>
       <x>1550</x>
@@ -389,7 +389,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="htmp_RK">
+   <widget class="QLabel" name="htmpRK">
     <property name="geometry">
      <rect>
       <x>1090</x>
@@ -402,7 +402,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="htmp_LK">
+   <widget class="QLabel" name="htmpLK">
     <property name="geometry">
      <rect>
       <x>1510</x>
@@ -428,7 +428,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="htmp_single">
+   <widget class="QLabel" name="htmpSingle">
     <property name="geometry">
      <rect>
       <x>1230</x>
@@ -470,7 +470,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1918</width>
+     <width>1921</width>
      <height>26</height>
     </rect>
    </property>

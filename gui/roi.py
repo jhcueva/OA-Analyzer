@@ -9,11 +9,10 @@ from PyQt5.QtCore import Qt, QRectF, QRect, QSize, QPoint, pyqtSignal
 
 
 class Roi():
-    def __init__(self, qlabelRoi, qlabelImg, dcm, imgPixmap, posX, posY):
+    def __init__(self, qlabelRoi, qlabelImg, dcm, posX, posY):
         self._roi = qlabelRoi
         self._img = qlabelImg
         self._dcm = dcm
-        self._imgPixmap = imgPixmap
         self._posX = posX
         self._posY = posY
 
@@ -22,33 +21,31 @@ class Roi():
 
         self.system_path = os.path.dirname(os.path.abspath(__file__))
         self.analyzed = os.path.join(self.system_path, "analyzed")
-        print(self.analyzed)
 
-    def setRoi(self, Imagepixmap):
+    def setRoi(self, Imagepixmap, lateralS, medialS):
+        self._imgPixmap = Imagepixmap
         pixmap = QPixmap(self._roi.size())
         pixmap.fill(Qt.transparent)
         self.painter = QPainter(Imagepixmap)
         painterRectangle = QPen(Qt.green)
         painterRectangle.setWidth(10)
         self.painter.setPen(painterRectangle)
-        self.painter.drawRect(self.lateralSquare())
-        self.painter.drawRect(self.medialSquare())
+        self.painter.drawRect(lateralS)
+        self.painter.drawRect(medialS)
         self._roi.setPixmap(pixmap)
         self._img.setPixmap(Imagepixmap)
         self.painter.end()
 
-    def lateralSquare(self, height= 495, width=495):
-        if self.rectL.isNull():
-            self.rectL = QRect(QPoint(self.roiPoints()[0], self.roiPoints()[1]), QSize(height, width))
-            # self.update()
-        return self.rectL
-
-    def medialSquare(self, height=495, width=495):
-        if self.rectM.isNull():
-            self.rectM = QRect(QPoint(self.roiPoints()[2], self.roiPoints()[3]), QSize(height, width))
-            # self.update()
-        return self.rectM
-
+    # def lateralSquare(self, height= 495, width=495):
+    #     if self.rectL.isNull():
+    #         self.rectL = QRect(QPoint(self.roiPoints()[0], self.roiPoints()[1]), QSize(height, width))
+    #     return self.rectL
+    #
+    # def medialSquare(self, height=495, width=495):
+    #     if self.rectM.isNull():
+    #         self.rectM = QRect(QPoint(self.roiPoints()[2], self.roiPoints()[3]), QSize(height, width))
+    #     return self.rectM
+    #
     def roiPoints(self):
         center = self._dcm.shape[1] // 2
         right_x1 = (self._dcm.shape[1] - center) // 3
@@ -65,8 +62,7 @@ class Roi():
         if rectM.width() > 0:
             currentQrectL = rectL
             currentQrectM = rectM
-            # self.setRoi()
-            self.setRoi(Imagepixmap)
+            # self.setRoi(self._imgPixmap)
             cropL = self._imgPixmap.copy(currentQrectL)
             cropM = self._imgPixmap.copy(currentQrectM)
             if currentQrectL.x() < self.roiPoints()[-1]:
@@ -74,7 +70,6 @@ class Roi():
                 nameR = name + "_L" + ".png"
                 cropL.save(os.path.join(self.analyzed, nameL), quality=0)
                 cropM.save(os.path.join(self.analyzed, nameR), quality=0)
-                print("saved")
 
             else:
                 nameL = name + "_L" + ".png"
@@ -85,25 +80,3 @@ class Roi():
             currentQrect = rectM
             crop = self._imgPixmap.copy(currentQrect)
             crop.save(os.path.join(self.analyzed, name+".png"), quality=0)
-
-
-
-            # print(cropL)
-            # self.saveArray(cropL, self._imgPixmap.depth())
-            # cropM = self._imgPixmap.copy(currentQrectM)
-            # print(cropM)
-            print("done")
-
-    # def saveArray(self, img, depth):
-
-
-
-
-
-
-
-
-
-
-
-
