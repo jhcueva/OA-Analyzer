@@ -10,7 +10,6 @@ class LoadDataset(Dataset):
 
         self.file = [os.path.join(path, name) for name in files]
         self.file_name = [name for name in files]
-        # self.target = [int(name[0]) for name in files]
         self.transform = transform
 
     def __len__(self):

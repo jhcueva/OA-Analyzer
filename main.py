@@ -5,9 +5,11 @@ from PyQt5 import uic, QtCore
 from PyQt5.QtCore import Qt, QPoint, QRect, QSize
 from gui.viewer import Viewer
 from gui.roi import Roi
+from gui.utils import Utils
+from gui.results import ResutlsViewer
 from gui.mouseTracker import MouseTracker
 
-from inference.inference import Knee
+from inference.inference import Inference
 
 
 class App(QMainWindow):
@@ -19,15 +21,17 @@ class App(QMainWindow):
         self.__configureButtons()
         self.__configureMouseTrack()
 
+        self.system_path = os.path.dirname(os.path.abspath(__file__))
+        self.gui = os.path.join(self.system_path, "gui")
+        self.analyzed = os.path.join(self.gui, "analyzed")
+
         self.imageViewer = Viewer(self.image)
+        self.inference = Inference(self.gui)
+        # self.utils = Utils(self.lstFilesList)
         self.rectL = QRect()
         self.rectM = QRect()
         self.dragPositionL = QPoint()
         self.dragPositionM = QPoint()
-
-        self.system_path = os.path.dirname(os.path.abspath(__file__))
-        self.gui = os.path.join(self.system_path, "gui")
-        self.analyzed = os.path.join(self.gui, "analyzed")
 
     def __configureMouseTrack(self):
         tracker = MouseTracker(self.roi)
@@ -38,7 +42,12 @@ class App(QMainWindow):
         self.btnProcess.clicked.connect(self.process)
 
     def __configureFileNavigator(self):
+        self.utils = Utils(self.lstFilesList, self.lneSearch, self.displayImage)
         self.lstFilesList.itemClicked.connect(self.displayImage)
+        self.btnRight.clicked.connect(self.utils.right)
+        self.btnLeft.clicked.connect(self.utils.left)
+        print(type(self.lneSearch))
+        # self.lneSearch.textEdited.connect(self.utils.search)
 
     def __configuremenuBar(self):
         self.mniOpen.triggered.connect(self.openBrowser)
@@ -59,7 +68,6 @@ class App(QMainWindow):
     def displayImage(self, item):
         self.delete_ROI()
         self.fileName = item.text()
-        # self.imageViewer = Viewer(self.image)
         self.dicomImg = self.imageViewer.read_dicom(os.path.join(self.dir, self.fileName))
         rx = self.imageViewer.preprocess_xray(self.dicomImg)
         self.pixmap = self.imageViewer.arrayToPixmap(rx)
@@ -68,32 +76,26 @@ class App(QMainWindow):
     def process(self):
         self.delete_ROI()
         self.imageViewer.setImage(self.pixmap)
-        # self.roiViewer.setRoi(self.pixmap)
         self.roiViewer.saveRoi(self.fileName, self.lateralSquare(), self.medialSquare(), self.pixmap)
-        # self.saveRoi(self.fileName, self.roiViewer.lateralSquare(), self.roiViewer.medialSquare())
-        prediction, id = Knee(self.gui)
-        print(prediction)
-        print(id)
+        prediction, id = self.inference.Knee()
+        self.inference.plot_prediction(prediction, id)
+        self.resultsViewer = ResutlsViewer(self.analyzed)
+        if len(id) > 1:
+            self.resultsViewer.setBilateralViewer(id, self.barPredictR, self.barPredictL, self.htmpR, self.htmpL)
+
+
 
     def roiSelector(self):
-        try:
-            self.imageViewer.setImage(self.pixmap)
-            self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
-        except Exception as e:
-            print(e)
-
         self.roiViewer = Roi(self.roi, self.image, self.dicomImg, self.posX, self.posY)
-        # self.imageViewer.setImage(self.pixmap)
         self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
 
     def delete_ROI(self):
-        print(self.analyzed)
         for file in os.listdir(self.analyzed):
             os.remove(os.path.join(self.analyzed, file))
 
         try:
-            self.htmpRK.clear()
-            self.htmpLK.clear()
+            self.htmpR.clear()
+            self.htmpL.clear()
             self.htmpSingle.clear()
             self.barPredictR.clear()
             self.barPredictL.clear()
@@ -131,8 +133,6 @@ class App(QMainWindow):
         self.dragPositionL = QPoint()
         self.dragPositionM = QPoint()
         self.roi.setCursor(Qt.ArrowCursor)
-        # self.displayImage(self.lstFilesList.currentItem())
-        # self.roiViewer.setRoi(self.pixmap)
         self.update()
         super().mouseReleaseEvent(event)
 
@@ -141,7 +141,6 @@ class App(QMainWindow):
         try:
             self.posX = (pos.x() * self.dicomImg.shape[1]) // self.roi.width()
             self.posY = (pos.y() * self.dicomImg.shape[0]) // self.roi.height()
-            # self.roiViewer.mousePressEvent()
         except Exception as e:
             print('No value', e)
 

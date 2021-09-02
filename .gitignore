@@ -1,5 +1,6 @@
 __pycache__/
 gui/____pycache__/
-.idea
-*.pth
 gui/icons
+.idea
+
+*.pth
