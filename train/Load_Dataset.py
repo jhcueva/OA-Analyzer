@@ -24,10 +24,8 @@ class LoadDataset(Dataset):
         if self.transform:
             lateral = self.transform(lateral)
             medial = self.transform(medial)
-            # image = self.transform(image)
 
         return lateral, medial, self.target[item], file, self.name
-        # return image, self.target[item], file, name
 
     def Lateral_Medial(self, img):
         """

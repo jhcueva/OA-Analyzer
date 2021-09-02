@@ -5,7 +5,6 @@ import torch.nn.functional as F
 
 class ResNet(nn.Module):  # Layer 4, part 3
     def __init__(self, num_classes):
-        """Load pretrained Resnet and replace the 4th layer, and fc layer"""
         super(ResNet, self).__init__()
         resnet = models.resnet34(pretrained=True)
         model1 = [*list(resnet.children())][:4]
@@ -63,7 +62,6 @@ class ResNet(nn.Module):  # Layer 4, part 3
         x = self.fc2(x)
 
         if x.requires_grad:
-            # x = x.view(-1, 128)
             x.register_hook(self.activations_hook)
 
         x = self.fc3(x)

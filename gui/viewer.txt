@@ -1,0 +1,143 @@
+import numpy as np
+import pydicom as dicom
+from PyQt5.QtGui import QPixmap, QImage, QPainter, QPen, QCursor
+from PyQt5.QtWidgets import QFrame, QGraphicsView, QGraphicsScene, QGraphicsPixmapItem
+from PyQt5.QtCore import  Qt, pyqtSignal, QObject, QEvent, QRectF
+from PyQt5 import QtCore, QtGui
+
+
+
+class Viewer(QObject):
+    def __init__(self, qgraphicsview):
+        super().__init__()
+        self._image = qgraphicsview
+        self._zoom = 0
+        self._pixmapHandle = None
+        self._scene = QGraphicsScene()
+        self._image.setScene(self._scene)
+
+    def width(self) -> int:
+        return self._image.width()
+
+    def height(self) -> int:
+        return self._image.height()
+
+    def lineWidth(self) -> int:
+        return self._image.lineWidth()
+
+    def hasImage(self):
+        return self._pixmapHandle is not None
+
+    def getPixmap(self):
+        if self.hasPixmap():
+            return self._pixmapHandle.pixmap()
+
+    def setScene(self, *args):
+        self._image.setScene(*args)
+
+    def setSceneRect(self, *args):
+        self._image.setSceneRect(*args)
+
+    def transform(self):
+        return self._image.transform()
+
+    def scale(self, *args):
+        self._image.scale(*args)
+
+    def viewport(self):
+        return self._image.viewport()
+
+    def setImage(self, img=None, a=False):
+        self._zoom = 0
+        w, h, linewidth = self.width(), self.height(), self.lineWidth()
+        # print(f"SET: {self.size()} || VIEW: {self.viewport().size()} || GEO: {self.geometry().size()}")
+        pixmap = self.arrayToPixmap(img)
+        if self.hasImage():
+            self._pixmapHandle.setPixmap(pixmap)
+        else:
+            self._pixmapHandle = self._scene.addPixmap(pixmap)
+        self._image.setSceneRect(QRectF(pixmap.rect()))
+        self.fitInView()
+
+    def fitInView(self, scale=True):
+        if self.hasImage():
+            rect = QtCore.QRectF(self._pixmapHandle.pixmap().rect())
+            if not rect.isNull():
+                self.setSceneRect(rect)
+                if self.hasImage():
+                    unity = self.transform().mapRect(QtCore.QRectF(0, 0, 1, 1))
+                    self.scale(1 / unity.width(), 1 / unity.height())
+                    viewrect = self.viewport().rect()
+                    scenerect = self.transform().mapRect(rect)
+                    factor = min(viewrect.width() / scenerect.width(),
+                                viewrect.height() / scenerect.height())
+                    self.scale(factor, factor)
+                self._zoom = 0
+
+    def arrayToPixmap(self, img):
+        qformat = QImage.Format_Indexed8
+        if len(img.shape) == 3:
+            if img.shape[2] == 4:
+                qformat = QImage.Format_RGBA8888
+            else:
+                qformat = QImage.Format_RGB888
+        img = QImage(img, img.shape[1], img.shape[0], img.strides[0], qformat)
+        img = QtGui.QPixmap.fromImage(img)
+        img = QtGui.QPixmap(img)
+        return img
+
+    def read_dicom(self, fileDir):
+        dcm = dicom.read_file(fileDir)
+        img = np.frombuffer(dcm.PixelData, dtype=np.uint16).copy()
+
+        if dcm.PhotometricInterpretation == 'MONOCHROME1':
+            img = img.max() - img
+        img = img.reshape((dcm.Rows, dcm.Columns))
+        return img
+
+    def preprocess_xray(self, img, cut_min=5., cut_max=99.):
+        """Preprocess the X-ray image using histogram clipping and global contrast normalization.
+
+        Parameters
+        ----------
+        cut_min: int
+            Lowest percentile which is used to cut the image histogram.
+        cut_max: int
+            Highest percentile.
+        """
+
+        img = img.astype(np.float64)
+
+        lim1, lim2 = np.percentile(img, [cut_min, cut_max])
+
+        img[img < lim1] = lim1
+        img[img > lim2] = lim2
+
+        img -= lim1
+
+        img /= img.max()
+        img *= 255
+
+        return img.astype(np.uint8, casting='unsafe')
+
+    def wheelEvent(self, event):
+        oldPos = self.mapToScene(event.pos())
+        if self.hasImage() and self._drag:
+            if event.angleDelta().y() > 0:
+                factor = 1.25
+                self._zoom += 1
+            else:
+                factor = 0.6
+                self._zoom -= 1
+
+            if self._zoom > 0:
+                self.scale(factor, factor)
+
+            elif self._zoom <= 0:
+                self.fitInView()
+            else:
+                self._zoom = 0
+            newPos = self.mapToScene(event.pos())
+            delta = newPos - oldPos
+            self.translate(delta.x(), delta.y())
+            self.imageWasZoomed.emit(event)

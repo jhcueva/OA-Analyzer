@@ -10,7 +10,7 @@ import pandas as pd
 
 class Graph:
     def __init__(self, new_path, optimizer, lr, num_epoch=1, start_time=None, end_time=None):
-        self.new_path = new_path  # r'C:\Users\Humberto\Desktop\resultado'
+        self.new_path = new_path
         self.optimizer = optimizer
         self.lr = lr
         self.batchsize = 64
