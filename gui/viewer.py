@@ -28,6 +28,16 @@ class Viewer(QObject):
         img = QtGui.QPixmap(img)
         return img
 
+    def patientInfo(self, dcmInfo, sexlbl, idlbl, datelbl):
+        name = str(dcmInfo.PatientName)
+        name = name.replace("^", " ")
+        date = str(dcmInfo.StudyDate)
+        date = date[6:] + "/" + date[4:6] + "/" + date[:4]
+        sexlbl.setText('Sex: ' + dcmInfo.PatientSex)
+        idlbl.setText("Name: " + str(name))
+        datelbl.setText("Date: " + date)
+        
+
     def read_dicom(self, fileDir):
         dcm = dicom.read_file(fileDir)
         img = np.frombuffer(dcm.PixelData, dtype=np.uint16).copy()
@@ -35,7 +45,7 @@ class Viewer(QObject):
         if dcm.PhotometricInterpretation == 'MONOCHROME1':
             img = img.max() - img
         img = img.reshape((dcm.Rows, dcm.Columns))
-        return img
+        return img, dcm
 
     def preprocess_xray(self, img, cut_min=5., cut_max=99.):
         """Preprocess the X-ray image using histogram clipping and global contrast normalization.

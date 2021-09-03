@@ -93,7 +93,7 @@ class Inference:
 
     def bar_graph(self, values, name):
         kl_predicted = values
-        kl_classes = ["K0", "K1", "K2", "K3", "K4"]
+        kl_classes = ["KL-0", "KL-1", "KL-2", "KL-3", "KL-4"]
 
         plt.bar(kl_classes, kl_predicted, width=1, color='#FFE5CC')
 

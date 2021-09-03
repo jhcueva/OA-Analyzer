@@ -36,16 +36,6 @@ class Roi():
         self._img.setPixmap(Imagepixmap)
         self.painter.end()
 
-    # def lateralSquare(self, height= 495, width=495):
-    #     if self.rectL.isNull():
-    #         self.rectL = QRect(QPoint(self.roiPoints()[0], self.roiPoints()[1]), QSize(height, width))
-    #     return self.rectL
-    #
-    # def medialSquare(self, height=495, width=495):
-    #     if self.rectM.isNull():
-    #         self.rectM = QRect(QPoint(self.roiPoints()[2], self.roiPoints()[3]), QSize(height, width))
-    #     return self.rectM
-    #
     def roiPoints(self):
         center = self._dcm.shape[1] // 2
         right_x1 = (self._dcm.shape[1] - center) // 3
@@ -59,7 +49,7 @@ class Roi():
 
     def saveRoi(self, dir, rectL, rectM, Imagepixmap):
         name, ext = os.path.splitext(dir)
-        if rectM.width() > 0:
+        if rectL.width() > 0:
             currentQrectL = rectL
             currentQrectM = rectM
             # self.setRoi(self._imgPixmap)
@@ -76,7 +66,7 @@ class Roi():
                 nameR = name + "_R" + ".png"
                 cropL.save(os.path.join(self.analyzed, nameL), quality=0)
                 cropM.save(os.path.join(self.analyzed, nameR), quality=0)
-        if rectM.width() < 495:
+        if rectL.width() < 495:
             currentQrect = rectM
             crop = self._imgPixmap.copy(currentQrect)
             crop.save(os.path.join(self.analyzed, name+".png"), quality=0)

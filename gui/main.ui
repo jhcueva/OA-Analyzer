@@ -314,7 +314,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QToolButton" name="btn_Trash">
+   <widget class="QToolButton" name="btnDelete">
     <property name="geometry">
      <rect>
       <x>670</x>
@@ -415,10 +415,10 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="bar_predict_single">
+   <widget class="QLabel" name="barPredictS">
     <property name="geometry">
      <rect>
-      <x>1320</x>
+      <x>1340</x>
       <y>650</y>
       <width>301</width>
       <height>181</height>
@@ -431,7 +431,7 @@
    <widget class="QLabel" name="htmpSingle">
     <property name="geometry">
      <rect>
-      <x>1230</x>
+      <x>1250</x>
       <y>150</y>
       <width>500</width>
       <height>500</height>

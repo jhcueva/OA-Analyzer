@@ -27,7 +27,6 @@ class App(QMainWindow):
 
         self.imageViewer = Viewer(self.image)
         self.inference = Inference(self.gui)
-        # self.utils = Utils(self.lstFilesList)
         self.rectL = QRect()
         self.rectM = QRect()
         self.dragPositionL = QPoint()
@@ -40,10 +39,12 @@ class App(QMainWindow):
     def __configureButtons(self):
         self.btnRoi.clicked.connect(self.roiSelector)
         self.btnProcess.clicked.connect(self.process)
+        self.btnDelete.clicked.connect(self.delete)
 
     def __configureFileNavigator(self):
         self.utils = Utils(self.lstFilesList, self.lneSearch, self.displayImage)
         self.lstFilesList.itemClicked.connect(self.displayImage)
+        self.lstFilesList.itemSelectionChanged.connect(self.newPoints)
         self.btnRight.clicked.connect(self.utils.right)
         self.btnLeft.clicked.connect(self.utils.left)
         print(type(self.lneSearch))
@@ -69,7 +70,8 @@ class App(QMainWindow):
         self.delete_ROI()
         self.fileName = item.text()
         self.dicomImg = self.imageViewer.read_dicom(os.path.join(self.dir, self.fileName))
-        rx = self.imageViewer.preprocess_xray(self.dicomImg)
+        self.imageViewer.patientInfo(self.dicomImg[1], self.lblSex, self.lblID, self.lblDate)
+        rx = self.imageViewer.preprocess_xray(self.dicomImg[0])
         self.pixmap = self.imageViewer.arrayToPixmap(rx)
         self.imageViewer.setImage(self.pixmap)
 
@@ -82,11 +84,11 @@ class App(QMainWindow):
         self.resultsViewer = ResutlsViewer(self.analyzed)
         if len(id) > 1:
             self.resultsViewer.setBilateralViewer(id, self.barPredictR, self.barPredictL, self.htmpR, self.htmpL)
-
-
-
+        else:
+            self.resultsViewer.setSingleViewer(id, self.barPredictS, self.htmpSingle)
+            
     def roiSelector(self):
-        self.roiViewer = Roi(self.roi, self.image, self.dicomImg, self.posX, self.posY)
+        self.roiViewer = Roi(self.roi, self.image, self.dicomImg[0], self.posX, self.posY)
         self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
 
     def delete_ROI(self):
@@ -100,7 +102,6 @@ class App(QMainWindow):
             self.barPredictR.clear()
             self.barPredictL.clear()
             self.barPredictSingle.clear()
-
         except Exception as e:
             print("No files to delete", e)
 
@@ -139,8 +140,8 @@ class App(QMainWindow):
     @QtCore.pyqtSlot(QtCore.QPoint)
     def on_positionChanged(self, pos):
         try:
-            self.posX = (pos.x() * self.dicomImg.shape[1]) // self.roi.width()
-            self.posY = (pos.y() * self.dicomImg.shape[0]) // self.roi.height()
+            self.posX = (pos.x() * self.dicomImg[0].shape[1]) // self.roi.width()
+            self.posY = (pos.y() * self.dicomImg[0].shape[0]) // self.roi.height()
         except Exception as e:
             print('No value', e)
 
@@ -157,16 +158,26 @@ class App(QMainWindow):
         return self.rectM
 
     def roiPoints(self):
-        center = self.dicomImg.shape[1] // 2
-        right_x1 = (self.dicomImg.shape[1] - center) // 3
-        left_x1 = ((self.dicomImg.shape[1] - center) // 3) + center
-        left_y1 = self.dicomImg.shape[0] // 4
+        center = self.dicomImg[0].shape[1] // 2
+        right_x1 = (self.dicomImg[0].shape[1] - center) // 3
+        left_x1 = ((self.dicomImg[0].shape[1] - center) // 3) + center
+        left_y1 = self.dicomImg[0].shape[0] // 4
         print(right_x1)
         print(left_y1)
         print(left_y1)
         print(center)
         return right_x1, left_y1, left_x1, left_y1, center
 
+    def delete(self):
+        """Delete one ROI rectangle"""
+        self.rectL.setWidth(0)
+        self.rectL.setHeight(1)
+        self.displayImage(self.lstFilesList.currentItem())
+        self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
+
+    def newPoints(self):
+        self.rectL.setWidth(495)
+        self.rectL.setHeight(495)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
