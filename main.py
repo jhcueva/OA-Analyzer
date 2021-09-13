@@ -1,6 +1,6 @@
 import os
 import sys
-from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog, QFileSystemModel
+from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 from PyQt5 import uic, QtCore
 from PyQt5.QtCore import Qt, QPoint, QRect, QSize
 from gui.viewer import Viewer
@@ -40,6 +40,7 @@ class App(QMainWindow):
         self.btnRoi.clicked.connect(self.roiSelector)
         self.btnProcess.clicked.connect(self.process)
         self.btnDelete.clicked.connect(self.delete)
+        self.spinSquareValue.valueChanged.connect(self.reSize)
 
     def __configureFileNavigator(self):
         self.utils = Utils(self.lstFilesList, self.lneSearch, self.displayImage)
@@ -47,8 +48,6 @@ class App(QMainWindow):
         self.lstFilesList.itemSelectionChanged.connect(self.newPoints)
         self.btnRight.clicked.connect(self.utils.right)
         self.btnLeft.clicked.connect(self.utils.left)
-        print(type(self.lneSearch))
-        # self.lneSearch.textEdited.connect(self.utils.search)
 
     def __configuremenuBar(self):
         self.mniOpen.triggered.connect(self.openBrowser)
@@ -59,6 +58,7 @@ class App(QMainWindow):
             self.lstFilesList.clear()
             desktop = os.path.expanduser("~/Desktop")
             self.dir = QFileDialog.getExistingDirectory(self, "Select directory", desktop)
+            self.utils.dir(self.dir)
             for dcmFiles in os.listdir(self.dir):
                 _, ext = os.path.splitext(dcmFiles)
                 if ext == ".dcm":
@@ -88,7 +88,7 @@ class App(QMainWindow):
             self.resultsViewer.setSingleViewer(id, self.barPredictS, self.htmpSingle)
             
     def roiSelector(self):
-        self.roiViewer = Roi(self.roi, self.image, self.dicomImg[0], self.posX, self.posY)
+        self.roiViewer = Roi(self.roi, self.image, self.dicomImg[0])
         self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
 
     def delete_ROI(self):
@@ -145,13 +145,13 @@ class App(QMainWindow):
         except Exception as e:
             print('No value', e)
 
-    def lateralSquare(self, height= 495, width=495):
+    def lateralSquare(self, height= 490, width=490):
         if self.rectL.isNull():
             self.rectL = QRect(QPoint(self.roiPoints()[0], self.roiPoints()[1]), QSize(height, width))
             self.update()
         return self.rectL
 
-    def medialSquare(self, height=495, width=495):
+    def medialSquare(self, height=490, width=490):
         if self.rectM.isNull():
             self.rectM = QRect(QPoint(self.roiPoints()[2], self.roiPoints()[3]), QSize(height, width))
             self.update()
@@ -176,8 +176,22 @@ class App(QMainWindow):
         self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
 
     def newPoints(self):
-        self.rectL.setWidth(495)
-        self.rectL.setHeight(495)
+        self.rectL.setWidth(490)
+        self.rectL.setHeight(490)
+        # self.rectM.setWidth(490)
+        # self.rectM.setHeight(490)
+
+    def reSize(self):
+        size = self.spinSquareValue.value()
+        try:
+            self.rectL.setWidth(size)
+            self.rectL.setHeight(size)
+            self.rectM.setWidth(size)
+            self.rectM.setHeight(size)
+            self.displayImage(self.lstFilesList.currentItem())
+            self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
+        except Exception as e:
+            print(e)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

@@ -9,12 +9,10 @@ from PyQt5.QtCore import Qt, QRectF, QRect, QSize, QPoint, pyqtSignal
 
 
 class Roi():
-    def __init__(self, qlabelRoi, qlabelImg, dcm, posX, posY):
+    def __init__(self, qlabelRoi, qlabelImg, dcm):
         self._roi = qlabelRoi
         self._img = qlabelImg
         self._dcm = dcm
-        self._posX = posX
-        self._posY = posY
 
         self.rectL = QRect()
         self.rectM = QRect()
