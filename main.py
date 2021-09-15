@@ -75,10 +75,12 @@ class App(QMainWindow):
         self.pixmap = self.imageViewer.arrayToPixmap(rx)
         self.imageViewer.setImage(self.pixmap)
 
+
     def process(self):
         self.delete_ROI()
-        self.imageViewer.setImage(self.pixmap)
+        self.displayImage(self.lstFilesList.currentItem())
         self.roiViewer.saveRoi(self.fileName, self.lateralSquare(), self.medialSquare(), self.pixmap)
+        self.roiViewer.setRoi(self.pixmap, self.lateralSquare(), self.medialSquare())
         prediction, id = self.inference.Knee()
         self.inference.plot_prediction(prediction, id)
         self.resultsViewer = ResutlsViewer(self.analyzed)

@@ -50,9 +50,8 @@ class Roi():
         if rectL.width() > 0:
             currentQrectL = rectL
             currentQrectM = rectM
-            # self.setRoi(self._imgPixmap)
-            cropL = self._imgPixmap.copy(currentQrectL)
-            cropM = self._imgPixmap.copy(currentQrectM)
+            cropL = Imagepixmap.copy(currentQrectL)
+            cropM = Imagepixmap.copy(currentQrectM)
             if currentQrectL.x() < self.roiPoints()[-1]:
                 nameL = name + "_R" + ".png"
                 nameR = name + "_L" + ".png"
@@ -64,7 +63,7 @@ class Roi():
                 nameR = name + "_R" + ".png"
                 cropL.save(os.path.join(self.analyzed, nameL), quality=0)
                 cropM.save(os.path.join(self.analyzed, nameR), quality=0)
-        if rectL.width() < 495:
+        if rectL.width() < 5:
             currentQrect = rectM
             crop = self._imgPixmap.copy(currentQrect)
             crop.save(os.path.join(self.analyzed, name+".png"), quality=0)
