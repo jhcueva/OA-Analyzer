@@ -54,7 +54,6 @@ class Inference:
             lateral_pred, medial_pred = model(lateral), model(medial)
             output1, l_preds = torch.max(lateral_pred, 1)
             output2, m_preds = torch.max(medial_pred, 1)
-            # output = lateral_pred.add(medial_pred)
             output = (lateral_pred + medial_pred) / 2
             output = output.cpu()
             output = output.detach().numpy().squeeze()
@@ -64,29 +63,42 @@ class Inference:
             attribution1 = guided_gc1.attribute(lateral, l_preds)
             attribution2 = guided_gc2.attribute(medial, m_preds)
 
-            heatmap1 = torch.mean(attribution1, dim=1)
-            heatmap2 = torch.mean(attribution2, dim=1)
-            heatmap1, _ = torch.max(heatmap1, 0)
-            heatmap2, _ = torch.max(heatmap2, 0)
-            heatmap1 /= torch.max(heatmap1)
-            heatmap2 /= torch.max(heatmap2)
-            heatmap1, heatmap2 = heatmap1.cpu(), heatmap2.cpu()
-            heatmap1, heatmap2 = heatmap1.detach().numpy(), heatmap2.detach().numpy()
+            heatmapLateral = torch.mean(attribution1, dim=1)
+            heatmapMedial = torch.mean(attribution2, dim=1)
+            heatmapLateral, _ = torch.max(heatmapLateral, 0)
+            heatmapMedial, _ = torch.max(heatmapMedial, 0)
+            heatmapLateral /= torch.max(heatmapLateral)
+            heatmapMedial /= torch.max(heatmapMedial)
+            heatmapLateral, heatmapMedial = heatmapLateral.cpu(), heatmapMedial.cpu()
+            heatmapLateral, heatmapMedial = heatmapLateral.detach().numpy(), heatmapMedial.detach().numpy()
 
             img = cv2.imread(file[0])
             width, height, _ = img.shape
             pad = (width // 2) + 16
-            lateral = img[0: height, 0: pad]
-            medial = img[0: height, (pad - 16): width]
-            heatmap1 = cv2.resize(heatmap1, (lateral.shape[1], lateral.shape[0]))
-            heatmap2 = cv2.resize(heatmap2, (medial.shape[1], medial.shape[0]))
-            heatmap1, heatmap2 = np.uint8(255 * heatmap1), np.uint8(255 * heatmap2)
-            heatmap1 = cv2.applyColorMap(heatmap1, cv2.COLORMAP_JET)
-            heatmap2 = cv2.applyColorMap(heatmap2, cv2.COLORMAP_JET)
-            heatmap2 = cv2.flip(heatmap2, 1)
-            overlay_img1 = cv2.addWeighted(lateral, 0.8, heatmap1, 0.3, 0)
-            overlay_img2 = cv2.addWeighted(medial, 0.8, heatmap2, 0.3, 0)
+            # lateral = img[0: height, 0: pad]
+            lateral = img[height//4: (height//4)+pad, 0: pad]
+            # medial = img[0: height, (pad - 16): width]
+            medial = img[height//4: (height//4)+pad, pad: width]
+            heatmapLateral = cv2.resize(heatmapLateral, (lateral.shape[1], lateral.shape[0]))
+            heatmapMedial = cv2.resize(heatmapMedial, (medial.shape[1], medial.shape[0]))
+            heatmapLateral, heatmapMedial = np.uint8(255 * heatmapLateral), np.uint8(255 * heatmapMedial)
+            heatmapLateral = cv2.applyColorMap(heatmapLateral, cv2.COLORMAP_JET)
+            heatmapMedial = cv2.applyColorMap(heatmapMedial, cv2.COLORMAP_JET)
+            heatmapMedial = cv2.flip(heatmapMedial, 1)
+            overlay_img1 = cv2.addWeighted(lateral, 0.8, heatmapLateral, 0.3, 0)
+            overlay_img2 = cv2.addWeighted(medial, 0.8, heatmapMedial, 0.3, 0)
             knee_heatmap = cv2.hconcat([overlay_img1, overlay_img2])
+
+
+            # x_offset = 0
+            # y_offset = height//4
+            # print(knee_heatmap.shape)
+            # x_end = x_offset + knee_heatmap.shape[1]
+            # y_end = y_offset + knee_heatmap.shape[0]
+            # print(y_offset, y_end, x_offset, x_end)
+            # img[y_offset: y_end, x_offset, x_end-1] = knee_heatmap
+            # cv2.imshow(img)
+            # cv2.waitKey(0)
             cv2.imwrite(os.path.join(os.path.join(self.directory, "analyzed"), "heatmap_" + name[0]), knee_heatmap)
 
         return classes, names

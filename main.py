@@ -75,7 +75,6 @@ class App(QMainWindow):
         self.pixmap = self.imageViewer.arrayToPixmap(rx)
         self.imageViewer.setImage(self.pixmap)
 
-
     def process(self):
         self.delete_ROI()
         self.displayImage(self.lstFilesList.currentItem())
