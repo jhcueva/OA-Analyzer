@@ -160,12 +160,13 @@ class App(QMainWindow):
 
     def roiPoints(self):
         center = self.dicomImg[0].shape[1] // 2
-        right_x1 = (self.dicomImg[0].shape[1] - center) // 3
-        left_x1 = ((self.dicomImg[0].shape[1] - center) // 3) + center
+        right_x1 = center // 3
+        left_x1 = (center // 3) + center
         left_y1 = self.dicomImg[0].shape[0] // 4
-        print(right_x1)
-        print(left_y1)
-        print(left_y1)
+        print("Uno", right_x1)
+        print("Dos", left_x1)
+        print("Tres", left_y1)
+        print("Cuatro", left_y1)
         print(center)
         return right_x1, left_y1, left_x1, left_y1, center
 

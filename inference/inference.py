@@ -75,10 +75,10 @@ class Inference:
             img = cv2.imread(file[0])
             width, height, _ = img.shape
             pad = (width // 2) + 16
-            # lateral = img[0: height, 0: pad]
-            lateral = img[height//4: (height//4)+pad, 0: pad]
-            # medial = img[0: height, (pad - 16): width]
-            medial = img[height//4: (height//4)+pad, pad: width]
+            lateral = img[0: height, 0: pad]
+            # lateral = img[height//4: (height//4)+pad, 0: pad]
+            medial = img[0: height, (pad - 16): width]
+            # medial = img[height//4: (height//4)+pad, pad: width]
             heatmapLateral = cv2.resize(heatmapLateral, (lateral.shape[1], lateral.shape[0]))
             heatmapMedial = cv2.resize(heatmapMedial, (medial.shape[1], medial.shape[0]))
             heatmapLateral, heatmapMedial = np.uint8(255 * heatmapLateral), np.uint8(255 * heatmapMedial)

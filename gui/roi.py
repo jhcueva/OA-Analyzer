@@ -1,11 +1,6 @@
 import os
-import numpy as np
-import cv2
-import matplotlib.pyplot as plt
-from PyQt5.QtWidgets import QAction, QApplication, QFileDialog, QMainWindow, QGraphicsPixmapItem, QWidget, QLineEdit, QGraphicsScene, QGraphicsView
-from PyQt5.QtGui import QPixmap, QImage, QPainter, QPen, QCursor
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import Qt, QRectF, QRect, QSize, QPoint, pyqtSignal
+from PyQt5.QtGui import QPixmap, QPainter, QPen
+from PyQt5.QtCore import Qt, QRect
 
 
 class Roi():
