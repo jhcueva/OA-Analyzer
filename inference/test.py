@@ -23,9 +23,9 @@ def no_doubles(lista):
 
 
 if __name__ == "__main__":
-    PATH = r"C:\Users\Humberto\Desktop\models\45\50_model_RN50_filterD_ft_7_bs64.pth"
-    DIR = r"C:\Users\Humberto\Desktop\data\34k_train_eval" #test_manual_224
-    IMG_DIR = r"C:\Users\Humberto\Desktop\data\preds"
+    PATH = r"C:\Users\Humberto\Desktop\Inference\model.pth"
+    DIR = r"C:\Users\Humberto\Desktop\metrics\metrics" #test_manual_224
+    IMG_DIR = r"C:\Users\Humberto\Desktop\metrics"
 
     batchsize = 16
     lr = 1e-4

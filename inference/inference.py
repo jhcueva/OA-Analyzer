@@ -55,6 +55,7 @@ class Inference:
             output1, l_preds = torch.max(lateral_pred, 1)
             output2, m_preds = torch.max(medial_pred, 1)
             output = (lateral_pred + medial_pred) / 2
+            print("Output: ", output)
             output = output.cpu()
             output = output.detach().numpy().squeeze()
             classes.append(output)
@@ -104,6 +105,7 @@ class Inference:
         return classes, names
 
     def bar_graph(self, values, name):
+        print("Values: ", values)
         kl_predicted = values
         kl_classes = ["KL-0", "KL-1", "KL-2", "KL-3", "KL-4"]
 

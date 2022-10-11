@@ -411,7 +411,7 @@
      <enum>Qt::Vertical</enum>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>1370</x>
@@ -480,7 +480,7 @@
         <set>Qt::AlignCenter</set>
        </property>
        <property name="minimum">
-        <number>450</number>
+        <number>350</number>
        </property>
        <property name="maximum">
         <number>600</number>

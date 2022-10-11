@@ -12,6 +12,7 @@ class Utils:
         # self.search.textEdited.connect(self.filter)
 
     def right(self):
+        print("Boron derecho")
         if None != self.list.currentItem():
             if (self.list.count() - 1) == self.list.currentRow():
                 self.list.setCurrentRow(-1)
@@ -20,6 +21,7 @@ class Utils:
             self.image(self.list.currentItem())
 
     def left(self):
+        print("Boron izquierdo")
         if None != self.list.currentItem():
             val = 0
             if self.list.currentRow() == 0:

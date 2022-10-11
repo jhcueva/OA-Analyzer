@@ -16,8 +16,8 @@ class ResutlsViewer:
         predictionR.setPixmap(pixmapStatsR)
         predictionL.setPixmap(pixmapStatsL)
 
-        htmapR = QPixmap(os.path.join(self.directory, "heatmap_" + id[1]))
-        htmapL = QPixmap(os.path.join(self.directory, "heatmap_" + id[0]))
+        htmapR = QPixmap(os.path.join(self.directory, id[1]))
+        htmapL = QPixmap(os.path.join(self.directory, id[0]))
         height, width = heatmapR.size().height(), heatmapR.size().width()
         pixmapHtmapR = htmapR.scaled(width, height, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
         pixmapHtmapL = htmapL.scaled(width, height, Qt.IgnoreAspectRatio, Qt.SmoothTransformation)

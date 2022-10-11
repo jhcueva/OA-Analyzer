@@ -1,6 +1,8 @@
 __pycache__/
 gui/____pycache__/
 gui/icons
+gui/analyzed/
 .idea
+
 
 *.pth
